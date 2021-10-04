@@ -1,0 +1,15 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - wget -O /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl
+      - chmod 755 /usr/local/bin/kubectl
+  pre_build:
+    commands:
+      - aws eks update-kubeconfig --name ${EKS_CLUSTER_NAME}
+      - kubectl get ns
+  build:
+    commands:
+      - kubectl apply -f deployment-demo-service.yaml
+      - kubectl apply -f service-demo-service.yaml

@@ -1,0 +1,33 @@
+version: 0.2 
+
+phases: 
+  pre_build:
+    commands:
+      - echo config
+      - git config --global credential.helper '!aws codecommit credential-helper $@'
+      - git config --global credential.UseHttpPath true
+      - git config --global user.name CodeBuild
+      - git config --global user.email CodeBuild@example.com
+      - echo preset ACCOUNT_ID
+      - ACCOUNT_ID=${CODEBUILD_BUILD_ARN} && IFS=':' && set -- $ACCOUNT_ID && ACCOUNT_ID=$5
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+  build: 
+    commands: 
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      - docker build -t $IMAGE_REPO_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION .
+      - docker tag $IMAGE_REPO_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION $ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION
+      - echo Build completed on `date`
+      - echo Pushing the Docker image...
+      - docker push $ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION
+  post_build: 
+    commands: |
+      git clone https://git-codecommit.$AWS_DEFAULT_REGION.amazonaws.com/v1/repos/$MANIFEST_SRC_NAME
+      cd $MANIFEST_SRC_NAME
+      git checkout -b feature/$CODEBUILD_RESOLVED_SOURCE_VERSION
+      sed -i 's/image: '$ACCOUNT_ID'.dkr.ecr.'$AWS_DEFAULT_REGION'.amazonaws.com\/'$IMAGE_REPO_NAME':\(.*\)/image: '$ACCOUNT_ID'.dkr.ecr.'$AWS_DEFAULT_REGION'.amazonaws.com\/'$IMAGE_REPO_NAME':'$CODEBUILD_RESOLVED_SOURCE_VERSION'/' deployment-demo-service.yaml
+      git add .
+      git commit -m "update module"
+      git push --set-upstream origin feature/$CODEBUILD_RESOLVED_SOURCE_VERSION
+      aws codecommit create-pull-request --title "new image deploy request" --description "New Image Deploy, Please Marge" --targets repositoryName=$MANIFEST_SRC_NAME,sourceReference=feature/$CODEBUILD_RESOLVED_SOURCE_VERSION

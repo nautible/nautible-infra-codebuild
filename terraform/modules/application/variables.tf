@@ -1,0 +1,11 @@
+variable "pjname" {}
+variable "vpc_id" {}
+variable "region" {}
+variable "nautible_app_build_bucket" {}
+variable "nautible_app_pipeline_bucket" {}
+variable "nautible_app_build_role" {}
+variable "nautible_app_pipeline_role" {}
+variable "private_subnets" {}
+variable "codebuild_security_group" {}
+variable "eks_cluster_name" {}
+variable "ecr_lifecycle_image_count" {}

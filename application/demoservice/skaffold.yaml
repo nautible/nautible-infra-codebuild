@@ -1,0 +1,20 @@
+apiVersion: skaffold/v2beta12
+kind: Config
+metadata:
+  name: rashinban-app-receivedorder
+build:
+  artifacts:
+    - image: XXXXXXXXXXXX.dkr.ecr.ap-northeast-1.amazonaws.com/rashinban-app-receivedorder
+      custom:
+        buildCommand: build.cmd
+        dependencies:
+          paths:
+            - "."
+          ignore:
+            - "target"
+  local:
+    push: false
+deploy:
+  kustomize:
+    paths:
+      - ../rashinban-app-receivedorder-manifest/overlays/local-dev
