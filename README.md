@@ -94,9 +94,9 @@ metadata:
   creationTimestamp: "2021-05-13T01:01:34Z"
   name: aws-auth
   namespace: kube-system
-  resourceVersion: "31302527"
+  resourceVersion: "xxxxxxxx"
   selfLink: /api/v1/namespaces/kube-system/configmaps/aws-auth
-  uid: c3ffd730-91ad-42d4-8d7d-6de664af6eca
+  uid: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 ```
 
 ### サンプルアプリケーションの準備
